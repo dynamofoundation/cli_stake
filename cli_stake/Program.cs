@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Net;
 using System.Text;
 
 namespace cli_stake
@@ -35,7 +36,7 @@ namespace cli_stake
             Console.WriteLine("    amount=<DMO to stake> (only used for stake command)");
             Console.WriteLine("    stake_type=[flex|lock]  (only used for stake command)");
             Console.WriteLine("    stake_term=[30|60|90|120|180|360|720]  (only used for stake command)");
-            Console.WriteLine("    txid=<txid of stake to ticket, claim or unstake>  (not used for stake command)");
+            Console.WriteLine("    txid=<txid of stake to claim, payout or unstake>  (not used for stake command)");
             Console.WriteLine("");
             Console.WriteLine("");
 
@@ -45,6 +46,39 @@ namespace cli_stake
                 string[] arg = s.Split("=");
                 args.Add(arg[0], arg[1]);
             }
+
+
+            args.Clear();
+            args.Add("rpcconnect", "127.0.0.1");
+            args.Add("rpcport", "6432");
+            args.Add("rpcuser", "user");
+            args.Add("rpcpassword", "123456");
+            args.Add("wallet", "teststake");
+            args.Add("address", "dy1qdwahghh06m6tyyzl2agcumqq4g4w9mj9ws6m37");
+
+            
+            args.Add("command", "stake");
+            args.Add("amount", "5");
+            args.Add("stake_type", "lock");
+            args.Add("stake_term", "180");
+            
+            
+            /*
+            args.Add("command", "unstake");
+            args.Add("txid", "e80b6dbff0a3133f677a342809f821379daf4327aa2d031469b8701b59946f1d");
+            */
+
+            /*
+            args.Add("command", "claim");
+            args.Add("txid", "e80b6dbff0a3133f677a342809f821379daf4327aa2d031469b8701b59946f1d");
+            */
+
+            /*
+            args.Add("command", "payout");
+            args.Add("txid", "e80b6dbff0a3133f677a342809f821379daf4327aa2d031469b8701b59946f1d");
+            */
+
+
 
             //TODO - check for optional/required params and error out
 
@@ -81,7 +115,9 @@ namespace cli_stake
             dynamic dResult = JObject.Parse(result);
 
             decimal total = 0;
-            decimal dAmountToStake = Convert.ToDecimal(args["amount"]);
+            decimal dAmountToStake = 0;
+            if (args.ContainsKey("amount"))
+                dAmountToStake = Convert.ToDecimal(args["amount"]);
 
             foreach (dynamic o in dResult.result)
             {
@@ -93,7 +129,7 @@ namespace cli_stake
                 utxo.Add(txid + "," + vout + "," + amount.ToString(new CultureInfo("en-US")));
 
                 total += amount;
-                if (total >= dAmountToStake)
+                if (total >= dAmountToStake + 0.0001m)
                     break;
             }
 
@@ -134,7 +170,13 @@ namespace cli_stake
             input = input.Substring(0,input.Length - 1);
 
             string output1 = "{\"" + args["address"] + "\":" + change.ToString(new CultureInfo("en-US")) + "}";
-            string output2 = "{\"op_return_amount\": " + args["amount"] + "}";
+
+            string output2;
+            if (args["command"] == "stake")
+                output2 = "{\"op_return_amount\": " + args["amount"] + "}";
+            else
+                output2 = "{\"op_return_amount\": 0 }";
+
             string output3 = "{\"data\":\"" + Utility.ByteArrayToHexString(Encoding.ASCII.GetBytes(message)) + "\"}";
 
             string txparams = "[ [" + input + "], [" + output1 + "," + output2 + "," + output3 + "]]";
