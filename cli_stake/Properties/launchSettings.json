@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "cli_stake": {
+      "commandName": "Project",
+      "commandLineArgs": "rpcconnect=127.0.0.1\r\nrpcport=6432\r\nrpcuser=user\r\nrpcpassword=123456\r\nwallet=teststake\r\ncommand=stake\r\naddress=dy1qdwahghh06m6tyyzl2agcumqq4g4w9mj9ws6m37\r\namount=1\r\nstake_type=lock\r\nstake_term=90"
+    }
+  }
+}
